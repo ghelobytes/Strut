@@ -9,7 +9,9 @@ define(function () {
 				width: 75,
 				height: 50
 			}
-		}
+		},
+		// TODO: dynamically grow the size as we edge up on capacity
+		storageSize: 75 * 1024 * 1024
 	};
 
 	var temp = localStorage.getItem("Strut_sessionMeta");

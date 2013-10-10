@@ -61,20 +61,20 @@ function(FilesystemAPIPRovider,
 			return true;
 		},
 
-		ls: function() {
+		ls: function(path) {
 
 		},
 
-		rm: function(path, cb) {
+		rm: function(path) {
 			// check for attachments on this path
 			// delete attachments in the storage as well.
 		},
 
-		getContents: function(path, cb) {
+		getContents: function(path) {
 			// throw error if getting an attachment
 		},
 
-		setContents: function(path, data, cb) {
+		setContents: function(path, data) {
 			// instanceof the data to see if it is an attachment?
 		},
 
@@ -82,11 +82,11 @@ function(FilesystemAPIPRovider,
 			// see if we are already getting the desired attachment
 		},
 
-		setAttachment: function(path, data, cb) {
+		setAttachment: function(path, data) {
 
 		},
 
-		rmAttachment: function(path, cb) {
+		rmAttachment: function(path) {
 
 		}
 	};

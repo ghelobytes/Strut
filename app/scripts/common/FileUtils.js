@@ -16,6 +16,19 @@
     var FileUtils;
     return FileUtils = {
       /**
+       * Returns the dirname of the path
+       * e.g., dirName("path/to/some/file.txt") will return "path/to/some"
+       */
+      dirName: function(path) {
+        var i = path.lastIndexOf('/');
+        if (i !== -1) {
+          return path.substring(0, i+1);
+        } else {
+          return '';
+        }
+      },
+
+      /**
       		* Returns the base name of the path
       		* e.g., baseName("path/to/some/file.txt") will return "file.txt"
       		* baseName("path/to/some/file.txt", "txt") will return "file"
@@ -26,7 +39,6 @@
       		* @returns {String} base name
       		*
       */
-
       baseName: function(path, extension) {
         var idx;
         if (path[path.length - 1] === "/") {
