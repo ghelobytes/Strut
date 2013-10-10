@@ -18,8 +18,9 @@ require.config({
     	lang: "../locales/lang",
     	lexed: '../components/lexed/lexed',
     	codemirror: '../components/codemirror',
-    	'marked': '../components/marked/marked',
-    	'ServiceRegistry': 'framework/sr/index',
+    	marked: '../components/marked/marked',
+    	ServiceRegistry: 'framework/sr/index',
+    	Q: '../components/q/q',
 
     	// build - rmap
     	'strut/presentation_generator/bespoke': '../bundles/app/strut.presentation_generator.bespoke',
