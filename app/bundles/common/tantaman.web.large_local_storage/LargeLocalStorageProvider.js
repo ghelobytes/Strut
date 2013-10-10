@@ -22,12 +22,19 @@ function(FilesystemAPIPRovider,
 	}
 
 	function selectImplementation() {
-		var fs = FilesystemAPIPRovider.init();
-		if (fs) {
-			return FilesystemAPIPRovider;
-		} else if ((fs = IndexedDBProvider.init())) {
-
-		}
+		return FilesystemAPIPRovider.init().then(function(impl) {
+			return Q(impl);
+		}, function() {
+			return IndexedDBProvider.init();
+		}).then(function(impl) {
+			return Q(impl);
+		}, function() {
+			return WebSQLProvider.init();
+		}).then(function(impl) {
+			return Q(impl);
+		}, function() {
+			return LocalStorageProvider.init();
+		});
 	}
 
 	function copyOldPresentations(from, to) {
@@ -35,10 +42,14 @@ function(FilesystemAPIPRovider,
 	}
 
 	function LargeLocalStorageProvider() {
-		this._impl = selectImplementation();
-		if (window.sessionMeta.lastStorageImpl != this._impl.type) {
-			copyOldPresentations(window.sessionMeta.lastStorageImpl, this._impl);
-		}
+		var self = this;
+		selectImplementation().then(function(impl) {
+			console.log('Selected: ' + impl.type);
+			self._impl = impl;
+			if (window.sessionMeta.lastStorageImpl != this._impl.type) {
+				copyOldPresentations(window.sessionMeta.lastStorageImpl, this._impl);
+			}
+		});
 	}
 
 	LargeLocalStorageProvider.prototype = {
@@ -47,7 +58,7 @@ function(FilesystemAPIPRovider,
 		},
 
 		ready: function() {
-
+			return true;
 		},
 
 		ls: function() {
