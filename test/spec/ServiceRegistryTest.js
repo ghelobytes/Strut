@@ -1,6 +1,7 @@
 define([
-	'../../app/scripts/framework/ServiceRegistry'
-], function(ServiceRegistry) {
+	'ServiceRegistry'
+], function(sr) {
+	var ServiceRegistry = sr.ServiceRegistry;
 	'use strict';
 
 	describe('ServiceRegistry', function() {

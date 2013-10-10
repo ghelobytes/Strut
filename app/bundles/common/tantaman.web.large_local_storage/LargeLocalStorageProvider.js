@@ -21,19 +21,19 @@ function(FilesystemAPIPRovider,
 		}
 	}
 
-	function selectImplementation() {
-		return FilesystemAPIPRovider.init().then(function(impl) {
+	function selectImplementation(registry) {
+		return FilesystemAPIPRovider.init(registry).then(function(impl) {
 			return Q(impl);
 		}, function() {
-			return IndexedDBProvider.init();
+			return IndexedDBProvider.init(registry);
 		}).then(function(impl) {
 			return Q(impl);
 		}, function() {
-			return WebSQLProvider.init();
+			return WebSQLProvider.init(registry);
 		}).then(function(impl) {
 			return Q(impl);
 		}, function() {
-			return LocalStorageProvider.init();
+			return LocalStorageProvider.init(registry);
 		});
 	}
 
@@ -41,9 +41,9 @@ function(FilesystemAPIPRovider,
 		from = getImpl(from);
 	}
 
-	function LargeLocalStorageProvider() {
+	function LargeLocalStorageProvider(registry) {
 		var self = this;
-		selectImplementation().then(function(impl) {
+		selectImplementation(registry).then(function(impl) {
 			console.log('Selected: ' + impl.type);
 			self._impl = impl;
 			if (window.sessionMeta.lastStorageImpl != this._impl.type) {
