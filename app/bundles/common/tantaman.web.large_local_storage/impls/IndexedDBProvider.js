@@ -90,10 +90,12 @@ define(['Q'], function(Q) {
 			var openCur = transaction.objectStore('attachments').openCursor();
 
 			del.onsuccess = function(e) {
+				console.log('Final defer');
 				finalDeferred.resolve(deferred);
 			};
 
 			del.onerror = function(e) {
+				console.log('error');
 				finalDeferred.reject();
 			};
 
@@ -102,6 +104,8 @@ define(['Q'], function(Q) {
 				if (cursor) {
 					console.log(cursor);
 					// check if the item has the key we are interested in
+					if (cursor.primaryKey.indexOf(path) == 0)
+						cursor.delete();
 					cursor.continue();
 				} else {
 					deferred.resolve();
@@ -184,11 +188,11 @@ define(['Q'], function(Q) {
 			var transaction = this._db.transaction(['attachments'], 'readwrite');
 			var del = transaction.objectStore('attachments').delete(path);
 
-			put.onsuccess = function(e) {
+			del.onsuccess = function(e) {
 				deferred.resolve(e);
 			};
 
-			put.onerror = function(e) {
+			del.onerror = function(e) {
 				deferred.reject(e);
 			};
 

@@ -77,7 +77,7 @@ function(llsp, SR) {
 			}).then(function(contents) {
 				expect("File should not have been found").to.equal("");
 			}).catch(function(err) {
-				expect(err.code).to.equal(FileError.NOT_FOUND_ERR);
+				expect(err != null).to.equal(true);
 				done();
 			});
 		});
@@ -135,11 +135,10 @@ function(llsp, SR) {
 				}).then(function() {
 					return storage.getAttachment("testfile5/pie");
 				}).then(function() {
-					console.log('fail?');
 					fail(err);
 					done();
 				}).catch(function(err) {
-					expect(err.code).to.equal(FileError.NOT_FOUND_ERR);
+					expect(err != null).to.equal(true);
 					done();
 				});
 			});
