@@ -38,9 +38,10 @@ define(['Q'], function(Q) {
 		this.type = 'IndexedDB';
 
 		var transaction = this._db.transaction(['attachments'], 'readwrite');
+		this._supportsBlobs = true;
 		try {
 			transaction.objectStore('attachments')
-			.put(Blob(["sdf"], {type: "text/plain"}, "featurecheck"));
+			.put(Blob(["sdf"], {type: "text/plain"}), "featurecheck");
 		} catch (e) {
 			this._supportsBlobs = false;
 		}
@@ -125,9 +126,10 @@ define(['Q'], function(Q) {
 			var transaction = this._db.transaction(['attachments'], 'readonly');
 			var get = transaction.objectStore('attachments').get(path);
 
+			var self = this;
 			get.onsuccess = function(e) {
 				var data = e.target.result;
-				if (!this._supportsBlobs) {
+				if (!self._supportsBlobs) {
 					data = dataURLToBlob(data);
 				}
 				deferred.resolve(data);
