@@ -7,7 +7,8 @@ function(llsp, SR) {
 		forceProvider: 'IndexedDB' // force a desired provider.
 	});
 
-	function fail() {
+	function fail(err) {
+		console.log(err);
 		expect(false).to.equal(true);
 	}
 
@@ -41,7 +42,7 @@ function(llsp, SR) {
 				expect(contents).to.equal("contents");
 				done();
 			}).catch(function(err) {
-				fail();
+				fail(err);
 				done();
 			})
 		});
@@ -61,7 +62,7 @@ function(llsp, SR) {
 				expect(jsondoc).to.eql(JSON.parse(contents));
 				done();
 			}).catch(function(err) {
-				fail();
+				fail(err);
 				done();
 			});
 		});
@@ -94,7 +95,7 @@ function(llsp, SR) {
 					expect(attach instanceof Blob).to.equal(true);
 					done();
 				}).catch(function(err) {
-					fail();
+					fail(err);
 					done();
 				});
 			});
@@ -111,7 +112,7 @@ function(llsp, SR) {
 				$(document.body).append('<img src="' + url + '">');
 				done();
 			}).catch(function() {
-				fail();
+				fail(err);
 				done();
 			});
 		});
@@ -120,7 +121,7 @@ function(llsp, SR) {
 			storage.rmAttachment("testfile4/ele").then(function() {
 				done();
 			}).catch(function() {
-				fail();
+				fail(err);
 				done();
 			});
 		});
@@ -135,7 +136,7 @@ function(llsp, SR) {
 					return storage.getAttachment("testfile5/pie");
 				}).then(function() {
 					console.log('fail?');
-					fail();
+					fail(err);
 					done();
 				}).catch(function(err) {
 					expect(err.code).to.equal(FileError.NOT_FOUND_ERR);

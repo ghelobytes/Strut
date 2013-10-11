@@ -1,8 +1,49 @@
 define(['Q'], function(Q) {
 	var URL = window.URL || window.webkitURL;
+
+	function convertToBase64(blob, cb) {
+        var fr = new FileReader();
+        fr.onload = function(e) {
+            cb(e.target.result);
+        }
+        fr.readAsDataURL(blob);
+    }
+
+    function dataURLToBlob(dataURL) {
+        var BASE64_MARKER = ';base64,';
+        if (dataURL.indexOf(BASE64_MARKER) == -1) {
+          var parts = dataURL.split(',');
+          var contentType = parts[0].split(':')[1];
+          var raw = parts[1];
+
+          return new Blob([raw], {type: contentType});
+        }
+
+        var parts = dataURL.split(BASE64_MARKER);
+        var contentType = parts[0].split(':')[1];
+        var raw = window.atob(parts[1]);
+        var rawLength = raw.length;
+
+        var uInt8Array = new Uint8Array(rawLength);
+
+        for (var i = 0; i < rawLength; ++i) {
+          uInt8Array[i] = raw.charCodeAt(i);
+        }
+
+        return new Blob([uInt8Array], {type: contentType});
+    }
+
 	function IDB(db) {
 		this._db = db;
 		this.type = 'IndexedDB';
+
+		var transaction = this._db.transaction(['attachments'], 'readwrite');
+		try {
+			transaction.objectStore('attachments')
+			.put(Blob(["sdf"], {type: "text/plain"}, "featurecheck"));
+		} catch (e) {
+			this._supportsBlobs = false;
+		}
 	}
 
 	// TODO: normalize returns and errors.
@@ -81,7 +122,11 @@ define(['Q'], function(Q) {
 			var get = transaction.objectStore('attachments').get(path);
 
 			get.onsuccess = function(e) {
-				deferred.resolve(e.target.result);
+				var data = e.target.result;
+				if (!this._supportsBlobs) {
+					data = dataURLToBlob(data);
+				}
+				deferred.resolve(data);
 			};
 
 			get.onerror = function(e) {
@@ -109,16 +154,27 @@ define(['Q'], function(Q) {
 		setAttachment: function(path, data) {
 			var deferred = Q.defer();
 
-			var transaction = this._db.transaction(['attachments'], 'readwrite');
-			var put = transaction.objectStore('attachments').put(data, path);
+			if (data instanceof Blob && !this._supportsBlobs) {
+				var self = this;
+				convertToBase64(data, function(data) {
+					continuation.call(self, data);
+				});
+			} else {
+				continuation.call(this, data);
+			}
 
-			put.onsuccess = function(e) {
-				deferred.resolve(e);
-			};
+			function continuation(data) {
+				var transaction = this._db.transaction(['attachments'], 'readwrite');
+				var put = transaction.objectStore('attachments').put(data, path);
 
-			put.onerror = function(e) {
-				deferred.reject(e);
-			};
+				put.onsuccess = function(e) {
+					deferred.resolve(e);
+				};
+
+				put.onerror = function(e) {
+					deferred.reject(e);
+				};
+			}
 
 			return deferred.promise;
 		},
