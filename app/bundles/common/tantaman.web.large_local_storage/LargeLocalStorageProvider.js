@@ -43,13 +43,22 @@ function(FilesystemAPIPRovider,
 
 	function LargeLocalStorageProvider(registry) {
 		var self = this;
+		var deferred = Q.defer();
 		selectImplementation(registry).then(function(impl) {
 			console.log('Selected: ' + impl.type);
 			self._impl = impl;
-			if (window.sessionMeta.lastStorageImpl != this._impl.type) {
-				copyOldPresentations(window.sessionMeta.lastStorageImpl, this._impl);
+			if (window.sessionMeta && 
+				window.sessionMeta.lastStorageImpl != self._impl.type) {
+				copyOldPresentations(window.sessionMeta.lastStorageImpl, self._impl);
 			}
+			deferred.resolve(self);
+		}).catch(function(e) {
+			// This should be impossible
+			console.log(e);
+			deferred.reject('No storage provider found');
 		});
+
+		this.initialized = deferred.promise;
 	}
 
 	LargeLocalStorageProvider.prototype = {
@@ -62,32 +71,33 @@ function(FilesystemAPIPRovider,
 		},
 
 		ls: function(path) {
-
+			return this._impl.ls(path);
 		},
 
 		rm: function(path) {
 			// check for attachments on this path
 			// delete attachments in the storage as well.
+			return this._impl.rm(path);
 		},
 
 		getContents: function(path) {
-			// throw error if getting an attachment
+			return this._impl.getContents(path);
 		},
 
 		setContents: function(path, data) {
-			// instanceof the data to see if it is an attachment?
+			return this._impl.setContents(path, data);
 		},
 
-		getAttachment: function() {
-			// see if we are already getting the desired attachment
+		getAttachment: function(path) {
+			return this._impl.getAttachment(path);
 		},
 
 		setAttachment: function(path, data) {
-
+			return this._impl.setAttachment(path, data);
 		},
 
 		rmAttachment: function(path) {
-
+			return this._impl.rmAttachment(path);
 		}
 	};
 

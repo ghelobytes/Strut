@@ -30,8 +30,13 @@ define(['Q', 'common/FileUtils'], function(Q, FileUtils) {
 				fileEntry.file(function(file) {
 					var reader = new FileReader();
 
-					reader.onload = function(e) {
-						deferred.resolve(e.target.result);
+					reader.onloadend = function(e) {
+						var data = e.target.result;
+						// for some reason our mime type is lost...
+						try {
+							data = JSON.parse(data);
+						} catch (e) {}
+						deferred.resolve(data);
 					};
 
 					reader.readAsText(file);
@@ -48,16 +53,22 @@ define(['Q', 'common/FileUtils'], function(Q, FileUtils) {
 
 			this._fs.root.getFile(path, {create:true}, function(fileEntry) {
 				fileEntry.createWriter(function(fileWriter) {
+					var blob;
 					fileWriter.onwriteend = function(e) {
-						deferred.resolve();
+						fileWriter.onwriteend = function() {
+							deferred.resolve();
+						};
+						fileWriter.truncate(blob.size);
 					}
 
 					fileWriter.onerror = makeErrorHandler(deferred);
 
 					if (data instanceof Blob) {
-						var blob = data;
+						blob = data;
+					} else if (typeof data === 'string') {
+						blob = new Blob([data], {type: 'text/plain'});
 					} else {
-						var blob = new Blob([data], {type: 'text/plain'});
+						blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
 					}
 
 					fileWriter.write(blob);
@@ -95,7 +106,9 @@ define(['Q', 'common/FileUtils'], function(Q, FileUtils) {
 
 		getAttachment: function(path) {
 			// same thing as getContents?
-			return this.getContents(path);
+			// we can't do this!  We need to just return the file
+			// so an objectURL can be created to it an so on.
+			// return this.getContents(path);
 		},
 
 		// Create a folder at dirname(path)+"-attachments"
@@ -149,10 +162,12 @@ define(['Q', 'common/FileUtils'], function(Q, FileUtils) {
 					deferred.resolve(new FSAPI(fs));
 				}, function(err) {
 					// TODO: implement various error messages.
+					console.log(err);
 					deferred.reject(err);
 				});
 			}, function(err) {
 				// TODO: implement various error messages.
+				console.log(err);
 				deferred.reject(err);
 			});
 
