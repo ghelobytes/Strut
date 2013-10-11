@@ -1,5 +1,8 @@
-define(['Q'], function(Q) {
+define(['Q', './utils'], function(Q, utils) {
 	var URL = window.URL || window.webkitURL;
+	var convertToBase64 = utils.convertToBase64;
+	var dataURLToBlob = utils.dataURLToBlob;
+
 	function WSQL(db) {
 		this._db = db;
 	}
@@ -10,12 +13,16 @@ define(['Q'], function(Q) {
 			this._db.transaction(function(tx) {
 				tx.executeSql('SELECT value FROM files WHERE fname = ?', [path],
 				function(tx, res) {
-					console.log(res);
-					deferred.resolve(res.rows.item(0));
+					if (res.rows.length == 0) {
+						deferred.reject({code: 1});
+					} else {
+						deferred.resolve(res.rows.item(0).value);
+					}
 				});
 			}, function(err) {
+				console.log(err);
 				deferred.reject(err);
-			};
+			});
 
 			return deferred.promise;
 		},
@@ -24,13 +31,12 @@ define(['Q'], function(Q) {
 			var deferred = Q.defer();
 			this._db.transaction(function(tx) {
 				tx.executeSql(
-				'INSERT OR REPLACE INTO files (fname, value) VALUES(?, ?)', [path, data],
-				function() {
-					console.log(arguments);
-					deferred.resolve();
-				});
+				'INSERT OR REPLACE INTO files (fname, value) VALUES(?, ?)', [path, data]);
 			}, function(err) {
+				console.log(err);
 				deferred.reject(err);
+			}, function() {
+				deferred.resolve();
 			});
 
 			return deferred.promise;
@@ -42,9 +48,9 @@ define(['Q'], function(Q) {
 				tx.executeSql('DELETE FROM files WHERE fname = ?', [path]);
 				tx.executeSql('DELETE FROM attachments WHERE fname = ?', [path]);
 			}, function(err) {
+				console.log(err);
 				deferred.reject(err);
 			}, function() {
-				console.log(arguments);
 				deferred.resolve();
 			});
 
@@ -53,24 +59,37 @@ define(['Q'], function(Q) {
 
 		getAttachment: function(path) {
 			var parts = path.split('/');
-			var fname = path[0];
-			var akey = path[1];
+			var fname = parts[0];
+			var akey = parts[1];
 			var deferred = Q.defer();
 
 			this._db.transaction(function(tx){ 
 				tx.executeSql('SELECT value FROM attachments WHERE fname = ? AND akey = ?',
 				[fname, akey],
 				function(tx, res) {
-					console.log(arguments);
-					deferred.resolve(res.rows.item(0));
+					if (res.rows.length == 0) {
+						deferred.reject({code: 1});
+					} else {
+						deferred.resolve(dataURLToBlob(res.rows.item(0).value));
+					}
 				});
+			}, function(err) {
+				console.log(err);
+				deferred.reject();
 			});
 
 			return deferred.promise;
 		},
 
 		getAttachmentURL: function(path) {
+			var deferred = Q.defer();
+			this.getAttachment(path).then(function(blob) {
+				deferred.resolve(URL.createObjectURL(blob));
+			}, function() {
+				deferred.reject();
+			});
 
+			return deferred.promise;
 		},
 
 		revokeAttachmentURL: function(url) {
@@ -79,19 +98,24 @@ define(['Q'], function(Q) {
 
 		setAttachment: function(path, data) {
 			var parts = path.split('/');
-			var fname = path[0];
-			var akey = path[1];
+			var fname = parts[0];
+			var akey = parts[1];
 			var deferred = Q.defer();
-			this._db.transaction(function(tx) {
-				tx.executeSql(
-				'INSERT OR REPLACE INTO attachments (fname, akey, value) VALUES(?, ?, ?)',
-				[fname, akey, data],
-				function() {
+
+			var self = this;
+			convertToBase64(data, function(data) {
+				self._db.transaction(function(tx) {
+					tx.executeSql(
+					'INSERT OR REPLACE INTO attachments (fname, akey, value) VALUES(?, ?, ?)',
+					[fname, akey, data]);
+				}, function(err) {
+					deferred.reject(err);
+				}, function() {
+					console.log("SET ATTACH");
 					console.log(arguments);
+					console.log("END SET ATTACH");
 					deferred.resolve();
 				});
-			}, function(err) {
-				deferred.reject(err);
 			});
 
 			return deferred.promise;
@@ -99,16 +123,18 @@ define(['Q'], function(Q) {
 
 		rmAttachment: function(path) {
 			var parts = path.split('/');
-			var fname = path[0];
-			var akey = path[1];
+			var fname = parts[0];
+			var akey = parts[1];
 			var deferred = Q.defer();
 			this._db.transaction(function(tx) {
 				tx.executeSql('DELETE FROM attachments WHERE fname = ? AND akey = ?',
-				[path, akey]);
+				[fname, akey]);
 			}, function(err) {
 				deferred.reject(err);
 			}, function() {
+				console.log("DEL ATTACH");
 				console.log(arguments);
+				console.log("END DEL ATTACH");
 				deferred.resolve();
 			});
 
@@ -130,8 +156,8 @@ define(['Q'], function(Q) {
 			db.transaction(function(tx) {
 				tx.executeSql('CREATE TABLE IF NOT EXISTS files (fname unique, value)');
 				tx.executeSql('CREATE TABLE IF NOT EXISTS attachments (fname, akey, value)');
-				tx.executeSql('CREATE INDEX fname_index ON attachments (fname)');
-				tx.executeSql('CREATE INDEX akey_index ON attachments (akey)');
+				tx.executeSql('CREATE INDEX IF NOT EXISTS fname_index ON attachments (fname)');
+				tx.executeSql('CREATE INDEX IF NOT EXISTS akey_index ON attachments (akey)');
 			}, function(err) {
 				deferred.reject(err);
 			}, function() {

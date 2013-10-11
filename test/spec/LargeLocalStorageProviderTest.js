@@ -4,7 +4,7 @@ function(llsp, SR) {
 	var registry = new SR.ServiceRegistry();
 	llsp.initialize(registry, {
 		size: 10 * 1024 * 1024,
-		forceProvider: 'IndexedDB' // force a desired provider.
+		forceProvider: 'WebSQL' // force a desired provider.
 	});
 
 	function fail(err) {
