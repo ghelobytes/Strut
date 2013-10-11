@@ -1778,6 +1778,9 @@ function HTML(runner) {
     , progress
     , ctx
 
+    if (typeof devicePixelRatio === 'undefined')
+      var devicePixelRatio = 1;
+
   if (canvas.getContext) {
     canvas.style.width = canvas.width;
     canvas.style.height = canvas.height;
