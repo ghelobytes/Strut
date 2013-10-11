@@ -22,7 +22,7 @@
       dirName: function(path) {
         var i = path.lastIndexOf('/');
         if (i !== -1) {
-          return path.substring(0, i+1);
+          return path.substring(0, i);
         } else {
           return '';
         }

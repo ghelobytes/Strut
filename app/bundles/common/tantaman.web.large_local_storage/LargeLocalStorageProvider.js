@@ -105,6 +105,16 @@ function(FilesystemAPIPRovider,
 			return this._impl.getAttachment(path);
 		},
 
+		getAttachmentURL: function(path) {
+			this._checkAvailability();
+			return this._impl.getAttachmentURL(path);
+		},
+
+		revokeAttachmentURL: function(url) {
+			this._checkAvailability();
+			return this._impl.revokeAttachmentURL(url);
+		},
+
 		setAttachment: function(path, data) {
 			this._checkAvailability();
 			return this._impl.setAttachment(path, data);
