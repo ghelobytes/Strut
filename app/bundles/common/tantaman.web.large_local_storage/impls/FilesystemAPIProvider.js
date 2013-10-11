@@ -145,7 +145,7 @@ define(['Q', 'common/FileUtils'], function(Q, FileUtils) {
 	};
 
 	return {
-		init: function(registry) {
+		init: function(registry, config) {
 			var deferred = Q.defer();
 			window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;
 			var persistentStorage = navigator.persistentStorage || navigator.webkitPersistentStorage;
@@ -155,7 +155,7 @@ define(['Q', 'common/FileUtils'], function(Q, FileUtils) {
 				return deferred.promise;
 			}
 
-			persistentStorage.requestQuota(window.config.storageSize,
+			persistentStorage.requestQuota(config.size,
 			function(numBytes) {
 				requestFileSystem(window.PERSISTENT, numBytes,
 				function(fs) {

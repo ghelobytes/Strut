@@ -1,12 +1,8 @@
 define(['tantaman/web/large_local_storage/main',
 		'ServiceRegistry'],
 function(llsp, SR) {
-	window.config = {
-		storageSize: 10 * 1024 * 1024
-	};
-
 	var registry = new SR.ServiceRegistry();
-	llsp.initialize(registry);
+	llsp.initialize(registry, {size: 10 * 1024 * 1024});
 
 	var storage = registry.getBest('tantaman.web.large_local_storage');
 	describe('LargeLocalStorage', function() {

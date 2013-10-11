@@ -8,6 +8,13 @@ function(FilesystemAPIPRovider,
 		 WebSQLProvider,
 		 LocalStorageProvider,
 		 Q) {
+
+	var sessionMeta = localStorage.getItem('LargeLocalStorage-meta');
+	if (sessionMeta)
+		sessionMeta = JSON.parse(sessionMeta);
+	else
+		sessionMeta = {};
+
 	function getImpl(type) {
 		switch(type) {
 			case 'FileSystemAPI':
@@ -21,36 +28,36 @@ function(FilesystemAPIPRovider,
 		}
 	}
 
-	function selectImplementation(registry) {
-		return FilesystemAPIPRovider.init(registry).then(function(impl) {
+	function selectImplementation(registry, config) {
+		return FilesystemAPIPRovider.init(registry, config).then(function(impl) {
 			return Q(impl);
 		}, function() {
-			return IndexedDBProvider.init(registry);
+			return IndexedDBProvider.init(registry, config);
 		}).then(function(impl) {
 			return Q(impl);
 		}, function() {
-			return WebSQLProvider.init(registry);
+			return WebSQLProvider.init(registry, config);
 		}).then(function(impl) {
 			return Q(impl);
 		}, function() {
-			return LocalStorageProvider.init(registry);
+			return LocalStorageProvider.init(registry, config);
 		});
 	}
 
-	function copyOldPresentations(from, to) {
+	function copyOldData(from, to) {
 		from = getImpl(from);
 	}
 
-	function LargeLocalStorageProvider(registry) {
+	function LargeLocalStorageProvider(registry, config) {
 		var self = this;
 		var deferred = Q.defer();
-		selectImplementation(registry).then(function(impl) {
+		selectImplementation(registry, config).then(function(impl) {
 			console.log('Selected: ' + impl.type);
 			self._impl = impl;
-			if (window.sessionMeta && 
-				window.sessionMeta.lastStorageImpl != self._impl.type) {
-				copyOldPresentations(window.sessionMeta.lastStorageImpl, self._impl);
+			if (sessionMeta.lastStorageImpl != self._impl.type) {
+				copyOldData(sessionMeta.lastStorageImpl, self._impl);
 			}
+			sessionMeta.lastStorageImpl = impl.type;
 			deferred.resolve(self);
 		}).catch(function(e) {
 			// This should be impossible
