@@ -28,7 +28,18 @@ function(FilesystemAPIPRovider,
 		}
 	}
 
+	var providers = {
+		FileSystemAPI: FilesystemAPIPRovider,
+		IndexedDB: IndexedDBProvider,
+		WebSQL: WebSQLProvider,
+		LocalStorage: LocalStorageProvider
+	}
+
 	function selectImplementation(registry, config) {
+		if (config.forceProvider) {
+			return providers[config.forceProvider].init(registry, config);
+		}
+
 		return FilesystemAPIPRovider.init(registry, config).then(function(impl) {
 			return Q(impl);
 		}, function() {

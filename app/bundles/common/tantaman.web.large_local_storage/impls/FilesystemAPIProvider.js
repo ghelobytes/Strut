@@ -43,10 +43,6 @@ define(['Q', 'common/FileUtils'], function(Q, FileUtils) {
 
 					reader.onloadend = function(e) {
 						var data = e.target.result;
-						// for some reason our mime type is lost...
-						try {
-							data = JSON.parse(data);
-						} catch (e) {}
 						deferred.resolve(data);
 					};
 
@@ -76,10 +72,8 @@ define(['Q', 'common/FileUtils'], function(Q, FileUtils) {
 
 					if (data instanceof Blob) {
 						blob = data;
-					} else if (typeof data === 'string') {
-						blob = new Blob([data], {type: 'text/plain'});
 					} else {
-						blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+						blob = new Blob([data], {type: 'text/plain'});
 					}
 
 					fileWriter.write(blob);

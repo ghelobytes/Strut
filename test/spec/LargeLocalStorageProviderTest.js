@@ -3,8 +3,8 @@ define(['tantaman/web/large_local_storage/main',
 function(llsp, SR) {
 	var registry = new SR.ServiceRegistry();
 	llsp.initialize(registry, {
-		size: 10 * 1024 * 1024
-		//forceProvider: 'FilesystemAPI' // force a desired provider.
+		size: 10 * 1024 * 1024,
+		forceProvider: 'IndexedDB' // force a desired provider.
 	});
 
 	function fail() {
@@ -46,6 +46,7 @@ function(llsp, SR) {
 			})
 		});
 
+		// well.... maybe not anymore... need to think about this ability.
 		it('Allows js objects to be set and read', function(done) {
 			var jsondoc = {
 				a: 1,
@@ -53,11 +54,11 @@ function(llsp, SR) {
 				c: {a: true}
 			};
 			storage.initialized.then(function() {
-				return storage.setContents("testfile2", jsondoc);
+				return storage.setContents("testfile2", JSON.stringify(jsondoc));
 			}).then(function() {
 				return storage.getContents("testfile2");
 			}).then(function(contents) {
-				expect(contents).to.eql(jsondoc);
+				expect(jsondoc).to.eql(JSON.parse(contents));
 				done();
 			}).catch(function(err) {
 				fail();
