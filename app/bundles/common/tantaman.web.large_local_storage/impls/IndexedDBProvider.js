@@ -91,19 +91,16 @@ define(['Q'], function(Q) {
 			var openCur = transaction.objectStore('attachments').openCursor();
 
 			del.onsuccess = function(e) {
-				console.log('Final defer');
 				finalDeferred.resolve(deferred);
 			};
 
 			del.onerror = function(e) {
-				console.log('error');
 				finalDeferred.reject();
 			};
 
 			openCur.onsuccess = function(e) {
 				var cursor = e.target.result;
 				if (cursor) {
-					console.log(cursor);
 					// check if the item has the key we are interested in
 					if (cursor.primaryKey.indexOf(path) == 0)
 						cursor.delete();
