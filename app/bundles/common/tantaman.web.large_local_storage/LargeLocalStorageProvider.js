@@ -70,6 +70,7 @@ function(FilesystemAPIPRovider,
 
 	LargeLocalStorageProvider.prototype = {
 		supportsAttachments: function() {
+			this._checkAvailability();
 			return this._impl.supportsAttachments();
 		},
 
@@ -78,33 +79,49 @@ function(FilesystemAPIPRovider,
 		},
 
 		ls: function(path) {
+			this._checkAvailability();
 			return this._impl.ls(path);
 		},
 
 		rm: function(path) {
 			// check for attachments on this path
 			// delete attachments in the storage as well.
+			this._checkAvailability();
 			return this._impl.rm(path);
 		},
 
 		getContents: function(path) {
+			this._checkAvailability();
 			return this._impl.getContents(path);
 		},
 
 		setContents: function(path, data) {
+			this._checkAvailability();
 			return this._impl.setContents(path, data);
 		},
 
 		getAttachment: function(path) {
+			this._checkAvailability();
 			return this._impl.getAttachment(path);
 		},
 
 		setAttachment: function(path, data) {
+			this._checkAvailability();
 			return this._impl.setAttachment(path, data);
 		},
 
 		rmAttachment: function(path) {
+			this._checkAvailability();
 			return this._impl.rmAttachment(path);
+		},
+
+		_checkAvailability: function() {
+			if (!this._impl) {
+				throw {
+					msg: "No storage implementation is available yet.  The user most likely has not granted you app access to FileSystemAPI or IndexedDB",
+					code: "NO_IMPLEMENTATION"
+				};
+			}
 		}
 	};
 
